@@ -28,8 +28,9 @@ from src.learner_params import (
 )
 
 from utils.functions__training import lgbm_classification_learner
+from utils.feature_selection_lists import boruta_features as model_features
 
-from config import logger
+from src.config import logger
 
 
 class DefaultModel:
@@ -52,6 +53,7 @@ class DefaultModel:
         application_test_df,
         bureau_balance_df,
         bureau_df,
+        credit_card_balance_df,
         installments_payments_df,
         pos_cash_balance_df,
         previous_application_df,
@@ -59,12 +61,15 @@ class DefaultModel:
         """ """
         self.application_train_df = application_train_df
         self.application_test_df = application_test_df
-        self.application_test_df = application_test_df
         self.bureau_balance_df = bureau_balance_df
         self.bureau_df = bureau_df
+        self.credit_card_balance_df = credit_card_balance_df
         self.installments_payments_df = installments_payments_df
         self.pos_cash_balance_df = pos_cash_balance_df
         self.previous_application_df = previous_application_df
+        self.application_df = pd.concat(
+            [self.application_train_df, self.application_test_df], ignore_index=True
+        )
 
     def create_input_dataset(self, verbose: bool = False):
         """
@@ -73,37 +78,52 @@ class DefaultModel:
         Parameters:
             verbose (bool, optional): Whether to display verbose output. Default is False.
         """
-
+        logger.info("Creating bureau features...")
         bureau_features_df = make_bureau_features(
             self.bureau_df,
             self.bureau_balance_df,
             self.application_train_df,
             self.application_test_df,
+            verbose=verbose,
         )
+        logger.info("bureau finished.")
 
+        logger.info("Creating credit card features...")
         credit_card_features_df = make_credit_card_features(
             self.credit_card_balance_df,
             self.application_train_df,
             self.application_test_df,
+            verbose=verbose,
         )
+        logger.info("credit card finished.")
+        logger.info("Creating installments features...")
+
         installments_features_df = make_installments_features(
-            self.installments_payments_df, self.application_df
+            self.installments_payments_df, self.application_df, verbose=verbose
         )
 
+        logger.info("Creating pos features...")
         pos_features_df = make_pos_features(
             self.pos_cash_balance_df,
             self.application_train_df,
             self.application_test_df,
+            verbose=verbose,
         )
+        logger.info("pos finished.")
+
+        logger.info("Creating previous application features...")
         previous_application_features_df = make_previous_application_features(
             self.previous_application_df,
             self.application_train_df,
             self.application_test_df,
+            verbose=verbose,
         )
+        logger.info("previous application finished.")
+        logger.info("Creating application features...")
         application_features_df = make_application_features(
-            self.application_train_df, self.application_test_df
+            self.application_train_df, self.application_test_df, verbose=verbose
         )
-
+        logger.info("application finished.")
         ldf = [
             bureau_features_df,
             credit_card_features_df,
@@ -127,18 +147,20 @@ class DefaultModel:
             save_estimator_path (str, optional): Path to save the trained estimator. Default is None.
         """
         self.bst, _, logs = lgbm_classification_learner(
-            tmp_train_df,
-            features=features,
+            self.frame,
+            features=model_features,
             target=target_column,
             learning_rate=params["learner_params"]["learning_rate"],
             num_estimators=params["learner_params"]["n_estimators"],
             extra_params=params["learner_params"]["extra_params"],
         )
 
-        with open(save_estimator_path, "wb") as context:
-            cp.dump(bst, context)
+        if isinstance(save_estimator_path, str):
+            with open(save_estimator_path, "wb") as context:
+                cp.dump(bst, context)
+        return self.bst
 
-    def make_inference(self, model_path: str = None, apply_shap: bool = False):
+    def make_inference(self, save_data_path: str = None, apply_shap: bool = False):
         """
         Make inferences using a trained model.
 
@@ -146,10 +168,10 @@ class DefaultModel:
             model_path (str, optional): Path to the trained model. Default is None.
             apply_shap (bool, optional): Whether to apply SHAP values during inference. Default is False.
         """
-        if model_path:
-            predict_fn = joblib.load(model_path)
-            predictions = predict_fn["predict_fn"](self.frame, apply_shap=apply_shap)
-        else:
-            predictions = self.bs(self.frame, apply_shap=apply_shap)
+
+        predictions = self.bst(self.frame, apply_shap=apply_shap)
+
+        if isinstance(save_estimator_path, str):
+            predictions.to_csv(save_data_path, index=False)
 
         return predictions

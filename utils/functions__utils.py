@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import os
 
 from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import roc_auc_score
@@ -174,3 +175,36 @@ def risk_band_table(frame,
         return p, tabla
     else:
         return binarizer.bin_edges_, tabla
+
+
+def load_csv_files(directory):
+    """
+    Load all .csv files from a directory and store them in a dictionary.
+
+    Parameters:
+        directory (str): Path to the directory containing .csv files.
+
+    Returns:
+        dict: A dictionary where keys are file names (without extension) and values are DataFrames.
+    """
+    data_dict = {}  # Dictionary to store loaded DataFrames
+
+    # List all files in the directory
+    file_list = os.listdir(directory)
+
+    # Iterate through files and load .csv files
+    for filename in file_list:
+        try:
+            if filename.endswith(".csv"):
+                file_path = os.path.join(directory, filename)
+                df = pd.read_csv(file_path)
+                # import pdb;pdb.set_trace()
+                # Remove file extension from the key
+                key = os.path.splitext(filename)[0].lower()
+                data_dict[key] = df
+        except:
+            pass
+            
+            
+
+    return data_dict
