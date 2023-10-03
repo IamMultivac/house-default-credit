@@ -1,3 +1,4 @@
+from datetime import datetime
 import pandas as pd
 import numpy as np
 
@@ -34,7 +35,7 @@ def main(
     whether to train the model, and applying SHAP values during inference.
     """
 
-    logger.info("loading the datasets...")
+    logger.info(" [1] loading the datasets...")
     loaded_data = load_csv_files(data_directory)
 
     application_train_df = loaded_data["application_train"]
@@ -58,11 +59,13 @@ def main(
         previous_application_df,
     )
 
-    logger.info("creating input dataset...")
+    logger.info("[2] creating input dataset...")
     input_dataset = default_model.create_input_dataset(verbose=False)
     logger.info("input dataset created.")
 
+    logger.info("[3] training predict function...")
     bst = default_model.train_predict_fn(save_estimator_path)
+    logger.info("predict function trained.")
 
     output_df = default_model.make_inference(
         save_data_path=save_data_path, apply_shap=apply_shap
@@ -72,6 +75,7 @@ def main(
 
 
 if __name__ == "__main__":
+    fecha = datetime.now().strftime("%Y%m%d")
     output_df = main(
-        "data/", save_data_path=f"data/submissions/final_submission_20230930.pkl"
+        "data/", save_data_path=f"data/submissions/final_submission_{fecha}.csv"
     )

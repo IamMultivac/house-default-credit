@@ -1,3 +1,4 @@
+import cloudpickle as cp
 import joblib
 import pandas as pd
 import numpy as np
@@ -29,6 +30,8 @@ from src.learner_params import (
 
 from utils.functions__training import lgbm_classification_learner
 from utils.feature_selection_lists import boruta_features as model_features
+from utils.functions__utils import label_encoder
+from utils.features_lists import string_columns
 
 from src.config import logger
 
@@ -137,6 +140,13 @@ class DefaultModel:
             lambda x, y: pd.merge(x, y, on=space_column, how="inner"), ldf
         )
 
+        self.frame = pd.merge(
+            self.frame.drop(string_columns, axis=1),
+            self.frame[string_columns].apply(label_encoder),
+            left_index=True,
+            right_index=True,
+        )
+
         return self.frame
 
     def train_predict_fn(self, save_estimator_path: str = None):
@@ -171,7 +181,7 @@ class DefaultModel:
 
         predictions = self.bst(self.frame, apply_shap=apply_shap)
 
-        if isinstance(save_estimator_path, str):
+        if isinstance(save_data_path, str):
             predictions.to_csv(save_data_path, index=False)
 
         return predictions

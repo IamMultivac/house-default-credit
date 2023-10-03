@@ -27,6 +27,8 @@ This work serves as a reference for applying real-world machine learning models 
 
 While it's well-known that ensembling several models can enhance performance in competitions, it's crucial to consider practical deployment challenges. Issues like model deployment, monitoring, and performance degradation over time are significant concerns that need to be addressed. This is why I personally believe that the best model in this work was developed using the "All relevant" approach, which has the lowest number of features (434) among all other models tested and even outperforms a model trained on the full feature set (1,147), resulting in a feature reduction of almost 3x.
 
+The proposed model achieved a good performance on the private evaluation positioning the model approximately the **122nd** position (Silver medal).
+
 ##### Evaluation
 
 Submissions are evaluated based on the [area under the ROC curve](http://en.wikipedia.org/wiki/Receiver_operating_characteristic) between the predicted probability and the observed target.
@@ -37,7 +39,7 @@ The model approach is based on a binary classification algorithm (LightGBM) usin
 
 The following table shows the different models along with the number of features used in each of them and their performances. For detailed information, please refer to the feature selection sections.
 
-| Model            | Number of Features | Out-of-fold | Validation |
+| Model            | Number of Features | OOF ROC AUC | Validation ROC AUC |
 |------------------|--------------------|-------------|------------|
 | boruta           | 426                | 0.795680    | 0.800874   |
 | ensemble          | 820                | 0.792880    | 0.799627   |
@@ -159,11 +161,14 @@ In summary, while performance differences are subtle, choose a model considering
 
 The following tables show the performance on the public and private submissions:
 
+
 ![Submissions](img/leaderboard.png)
 
 As this competition has ended, we don't have direct access to the leaderboard position. However, based on manual inspection, the best model would likely be in the top 1%, approximately the 122nd position.
 
+
 ![Leaderboard](img/position_leaderboard.png)
+
 
 ### Final Thoughts
 

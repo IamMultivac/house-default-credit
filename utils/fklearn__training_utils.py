@@ -11,29 +11,35 @@ from utils.fklearn__types import LearnerReturnType, UncurriedLearnerFnType
 
 
 @curry
-def log_learner_time(learner: UncurriedLearnerFnType, learner_name: str) -> UncurriedLearnerFnType:
+def log_learner_time(
+    learner: UncurriedLearnerFnType, learner_name: str
+) -> UncurriedLearnerFnType:
     @wraps(learner)
     def timed_learner(*args: Any, **kwargs: Any) -> LearnerReturnType:
         t0 = time()
         (p, d, l) = learner(*args, **kwargs)
-        return p, d, fp.assoc_in(l, [learner_name, 'running_time'], "%2.3f s" % (time() - t0))
+        return (
+            p,
+            d,
+            fp.assoc_in(l, [learner_name, "running_time"], "%2.3f s" % (time() - t0)),
+        )
 
     return timed_learner
 
 
 @curry
-def print_learner_run(learner: UncurriedLearnerFnType, learner_name: str) -> UncurriedLearnerFnType:
+def print_learner_run(
+    learner: UncurriedLearnerFnType, learner_name: str
+) -> UncurriedLearnerFnType:
     @wraps(learner)
     def printed_learner(*args: Any, **kwargs: Any) -> LearnerReturnType:
-        print('%s running' % learner_name)
+        print("%s running" % learner_name)
         return learner(*args, **kwargs)
 
     return printed_learner
 
 
-def expand_features_encoded(df: pd.DataFrame,
-                            features: List[str]) -> List[str]:
-
+def expand_features_encoded(df: pd.DataFrame, features: List[str]) -> List[str]:
     """
     Expand the list of features to include features created automatically
     by fklearn in encoders such as Onehot-encoder.
@@ -64,19 +70,36 @@ def expand_features_encoded(df: pd.DataFrame,
     def feature_prefix(feature: str) -> str:
         return feature.split("==")[0]
 
-    def filter_non_listed_features(fklearn_features: List[str], features: List[str]) -> List[str]:
-        possible_prefixes_with_listed_features = ["fklearn_feat__" + f for f in features]
-        return list(filter(lambda col: feature_prefix(col) in possible_prefixes_with_listed_features, fklearn_features))
+    def filter_non_listed_features(
+        fklearn_features: List[str], features: List[str]
+    ) -> List[str]:
+        possible_prefixes_with_listed_features = [
+            "fklearn_feat__" + f for f in features
+        ]
+        return list(
+            filter(
+                lambda col: feature_prefix(col)
+                in possible_prefixes_with_listed_features,
+                fklearn_features,
+            )
+        )
 
-    def remove_original_pre_encoded_features(features: List[str], encoded_features: List[str]) -> List[str]:
+    def remove_original_pre_encoded_features(
+        features: List[str], encoded_features: List[str]
+    ) -> List[str]:
         expr = r"fklearn_feat__(.*)=="
-        original_preencoded_features: List[str] = reduce(lambda x, y: x + y,
-                                                         (map(lambda x: re.findall(expr, x),
-                                                              encoded_features)),
-                                                         [])
-        return list(filter(lambda col: col not in set(original_preencoded_features), features))
+        original_preencoded_features: List[str] = reduce(
+            lambda x, y: x + y,
+            (map(lambda x: re.findall(expr, x), encoded_features)),
+            [],
+        )
+        return list(
+            filter(lambda col: col not in set(original_preencoded_features), features)
+        )
 
     all_fklearn_features = fklearn_features(df)
     encoded_features = filter_non_listed_features(all_fklearn_features, features)
-    not_encoded_features = remove_original_pre_encoded_features(features, encoded_features)
+    not_encoded_features = remove_original_pre_encoded_features(
+        features, encoded_features
+    )
     return not_encoded_features + encoded_features
