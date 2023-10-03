@@ -178,5 +178,16 @@ This means that one must consider the implications of model deployment, not just
 To replicate the project, you can follow these steps:
 
 ```bash
+
 !pip install -r requirements.txt
 python3 main.py
+```
+
+### Future work
+
+This project also served as an experiment framework. It was tested different approches for  model design and eventhought they did not finished  in the last model, it was worthy to test those techniques:
+1. Monotone constrains.
+2. Linear trees.
+
+The details on those approaches may be found [here](https://github.com/IamMultivac/house-default-credit/blob/master/research/monotone-constraints.ipynb) and [here](https://github.com/IamMultivac/house-default-credit/blob/master/research/linear-trees.ipynb).
+
