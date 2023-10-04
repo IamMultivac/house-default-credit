@@ -102,7 +102,7 @@ The following table displays the results:
 | prediction_all_features | 0.791760  | 0.799144            |
 | prediction_Optuna     | 0.788259    | 0.795938            |
 
-The table illustrates model performance once all hyperparameters have been optimized for each of them. The difference in performance between the Stacker model and Boruta is less than 0.004 in the out-of-fold evaluation. This suggests that in a real-world productive environment, the Stacker model would likely be the best choice, especially considering its reduced feature set.
+The table illustrates model performance once all hyperparameters have been optimized for each of them. The difference in performance between the Stacker model and Boruta is less than 0.004 in the out-of-fold evaluation. This suggests that in a real-world productive environment, the boruta model would likely be the best choice, especially considering its reduced feature set.
 
 Complete analysis can be found [here](https://github.com/IamMultivac/house-default-credit/blob/master/research/model-ensemble.ipynb).
 
@@ -125,7 +125,7 @@ These results indicate that the most impactful features are the inner models cre
 
 Regarding the importance by company type, there were no significant differences in the feature order among the risk bands, indicating that the most relevant features are important across all subpopulations.
 
-In terms of the most relevant sources of data, they can be listed from most important to least important:
+By using the average absolute contribution of the SHAP values we can figure out the most relevant data sources, they can be listed from most important to least important:
 
 1. Main application
 2. Installments
